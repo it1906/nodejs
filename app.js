@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
     const userGrid = document.querySelector('.grid-user');
     const computerGrid = document.querySelector('.grid-computer');
     const displayGrid = document.querySelector('.grid-display');
@@ -19,12 +19,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const width = 10;
 
     //Tvorba desky
-    function createBoard(grid,squares,width){
-        for(let i =0;i <width*width;i++){
-        const square = document.createElement('div')
-        square.dataset.id = i
-        grid.appendChild(square)
-        squares.push(square)
+    function createBoard(grid, squares, width = 10) {
+        for (let i = 0; i < width * width; i++) {
+            const square = document.createElement('div')
+            square.dataset.id = i
+            grid.appendChild(square)
+            squares.push(square)
         }
     }
     createBoard(userGrid, userSquares)
@@ -33,55 +33,55 @@ document.addEventListener('DOMContentLoaded',()=>{
     //Lodicky
     const shipArray = [
         {
-            name:'destroyer',
-            directions:[
-                [0,1],
-                [0,width]
+            name: 'destroyer',
+            directions: [
+                [0, 1],
+                [0, width]
             ]
         },
         {
-            name:'submarine',
-            directions:[
-                [0,1,2],
-                [0,width, width*2]
+            name: 'submarine',
+            directions: [
+                [0, 1, 2],
+                [0, width, width * 2]
             ]
         },
         {
-            name:'cruiser',
-            directions:[
-                [0,1,2],
-                [0,width,width*2]
+            name: 'cruiser',
+            directions: [
+                [0, 1, 2],
+                [0, width, width * 2]
             ]
         },
         {
-            name:'battleship',
-            directions:[
-                [0,1,2,3],
-                [0,width,width*2,width*3]
+            name: 'battleship',
+            directions: [
+                [0, 1, 2, 3],
+                [0, width, width * 2, width * 3]
             ]
         },
         {
-            name:'carrierr',
-            directions:[
-                [0,1,2,3,4],
-                [0,width,width*2,width*3,width*4]
+            name: 'carrier',
+            directions: [
+                [0, 1, 2, 3, 4],
+                [0, width, width * 2, width * 3, width * 4]
             ]
         }
     ]
 
     //random kreslime lodicky
-    function generate (ship){
-        let randomDirecton = Math.floor(Math.random()*ship.directions.length)
+    function generate(ship) {
+        let randomDirecton = Math.floor(Math.random() * ship.directions.length)
         let current = ship.directions[randomDirecton]
-        if(randomDirecton ===0) direction = 1
-        if(randomDirecton ===1) direction = 10
-        let randomStart = Math.abs(Math.floor(Math.random()*computerSquares.length -(ship.directions[0].length*direction)))
+        if (randomDirecton === 0) direction = 1
+        if (randomDirecton === 1) direction = 10
+        let randomStart = Math.abs(Math.floor(Math.random() * computerSquares.length - (ship.directions[0].length * direction)))
 
         const isTaken = current.some(index => computerSquares[randomStart + index].classList.contains('taken'))
-        const isAtRightEdge = current.some(index=>(randomStart+index)%width === width - 1)
-        const isAtLeftEdge = current.some(index=>(randomStart+index)%width === 0)
+        const isAtRightEdge = current.some(index => (randomStart + index) % width === width - 1)
+        const isAtLeftEdge = current.some(index => (randomStart + index) % width === 0)
 
-        if(!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => computerSquares[randomStart+index].classList.add('taken',ship.name))
+        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => computerSquares[randomStart + index].classList.add('taken', ship.name))
         else generate(ship)
     }
 
@@ -92,27 +92,67 @@ document.addEventListener('DOMContentLoaded',()=>{
     generate(shipArray[4])
 
     //rotace lodicek
-    function rotate(){
-        if(isHorizontal){
+    function rotate() {
+        if (isHorizontal) {
             destroyer.classList.toggle('destroyer-container-vertical')
             submarine.classList.toggle('submarine-container-vertical')
             cruiser.classList.toggle('cruiser-container-vertical')
             battleship.classList.toggle('battleship-container-vertical')
             carrier.classList.toggle('carrier-container-vertical')
-            isHorizontal = false
-            console.log(isHorizontal)
+            isHorizontal = false;
             return
         }
-        if(!isHorizontal){
+        if (!isHorizontal) {
             destroyer.classList.toggle('destroyer-container')
             submarine.classList.toggle('submarine-container')
             cruiser.classList.toggle('cruiser-container')
             battleship.classList.toggle('battleship-container')
             carrier.classList.toggle('carrier-container')
-            isHorizontal = true
-            console.log(isHorizontal)
+            isHorizontal = true;
             return
         }
     }
-    rotateButton.addEventListener('click',rotate)
+    rotateButton.addEventListener('click', rotate)
+
+
+    //pohyb lodicek na pole
+    ships.forEach(ship => ship.addEventListener('dragstart', dragStart))
+    userSquares.forEach(square => square.addEventListener('dragstart', dragStart))
+    userSquares.forEach(square => square.addEventListener('dragover', dragOver))
+    userSquares.forEach(square => square.addEventListener('dragenter', dragEnter))
+    userSquares.forEach(square => square.addEventListener('dragleave', dragLeave))
+    userSquares.forEach(square => square.addEventListener('drop', dragDrop)) 
+    userSquares.forEach(square => square.addEventListener('dragEnd', dragEnd))
+
+    let selectedShipNameWithIndex;
+    let draggedShip;
+    let draggedShipLength;
+
+    ships.forEach(ship => ship.addEventListener('mousedown', (e) => {
+        selectedShipNameWithIndex = e.target.id
+    }))
+
+    function dragStart() {
+        draggedShip = this;
+        draggedShipLength = this.childNodes.length;
+
+    }
+    function dragOver(e) {
+        e.preventDefault()
+    }
+    function dragEnter(e) {
+        e.preventDefault()
+    }
+    function dragLeave() { }
+    function dragDrop() {
+        let shipNameWithLastId = draggedShip.lastChild.id;
+        let shipClass = shipNameWithLastId.slice(0, -2);
+        console.log(shipClass)
+        let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
+        let shipLastId = lastShipIndex + parseInt(this.dataset.id);
+
+        selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1))
+
+    }
+    function dragEnd() { }
 })
