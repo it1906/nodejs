@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userGrid = document.querySelector('.grid-user');
     const computerGrid = document.querySelector('.grid-computer');
     const displayGrid = document.querySelector('.grid-display');
-    const ships = document.querySelector('.ship');
+    const ships = document.querySelectorAll('.ship');
     const destroyer = document.querySelector('.destroyer-container');
     const submarine = document.querySelector('.submarine-container');
     const cruiser = document.querySelector('.cruiser-container');
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cruiser.classList.toggle('cruiser-container-vertical')
             battleship.classList.toggle('battleship-container-vertical')
             carrier.classList.toggle('carrier-container-vertical')
-            isHorizontal = false;
+            isHorizontal = false
             return
         }
         if (!isHorizontal) {
@@ -108,12 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cruiser.classList.toggle('cruiser-container')
             battleship.classList.toggle('battleship-container')
             carrier.classList.toggle('carrier-container')
-            isHorizontal = true;
+            isHorizontal = true
             return
         }
-    }
-    rotateButton.addEventListener('click', rotate)
-
+    }rotateButton.addEventListener('click', rotate)
 
     //pohyb lodicek na pole
     ships.forEach(ship => ship.addEventListener('dragstart', dragStart))
@@ -121,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userSquares.forEach(square => square.addEventListener('dragover', dragOver))
     userSquares.forEach(square => square.addEventListener('dragenter', dragEnter))
     userSquares.forEach(square => square.addEventListener('dragleave', dragLeave))
-    userSquares.forEach(square => square.addEventListener('drop', dragDrop)) 
+    userSquares.forEach(square => square.addEventListener('drop', dragDrop))
     userSquares.forEach(square => square.addEventListener('dragEnd', dragEnd))
 
     let selectedShipNameWithIndex;
@@ -143,16 +141,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function dragEnter(e) {
         e.preventDefault()
     }
-    function dragLeave() { }
+    function dragLeave() {
+
+    }
     function dragDrop() {
         let shipNameWithLastId = draggedShip.lastChild.id;
         let shipClass = shipNameWithLastId.slice(0, -2);
         console.log(shipClass)
         let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
         let shipLastId = lastShipIndex + parseInt(this.dataset.id);
+        console.log(shipLastId)
 
         selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1))
 
+        shipLastId = shipLastId - selectedShipIndex;
+
+        if (isHorizontal) {
+            for (let i = 0; i < draggedShipLength; i++) {
+                userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', shipClass)
+            }
+        } else if (!isHorizontal) {
+            for (let i = 0; i < draggedShipLength; i++) {
+                userSquares[parseInt(this.dataset.id) - selectedShipIndex + width*i].classList.add('taken', shipClass)
+            }
+        }else return
+
+        displayGrid.removeChild(draggedShip)
     }
     function dragEnd() { }
 })
