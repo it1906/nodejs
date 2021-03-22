@@ -1,0 +1,28 @@
+{
+  "name": "hadamcik_nodejs",
+  "version": "1.0.0",
+  "description": "multiplayer battleship game",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/it1906/nodejs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/it1906/nodejs/issues"
+  },
+  "homepage": "https://github.com/it1906/nodejs#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
