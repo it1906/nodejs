@@ -45,16 +45,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerNum = parseInt(num)
                 if (playerNum === 1) currentPlayer = "enemy"
                 console.log(playerNum)
+
+                //status ostatnich hracu
+                socket.emit('check-players')
             }
         })
-        socket.on('player-connection', num =>{
+        socket.on('player-connection', num => {
             console.log(`player number ${num} has connected/disconnected`)
             playerConnectedOrDisconnected(num)
         })
-        function playerConnectedOrDisconnected(num){
+
+        //nepritel ready
+        socket.on('enemy-ready', num => {
+            enemyReady = true
+            playerReady(num)
+            if (ready) playGameMulti(socket)
+        })
+
+        //kontrola statusu
+        socket.on('check-players', players => {
+            players.forEach((p, i) => {
+                if (p.connected) playerConnectedOrDisconnected(i)
+                if (p.ready) {
+                    playerReady(i)
+                    if (i !== playerReady) enemyReady = true
+                }
+            })
+        })
+
+        //ready tlacitko
+        startButton.addEventListener('click', () => {
+            if (allShipsPlaced) playGameMulti(socket)
+            else infoDisplay.innerHTML = "Please place all ships"
+        })
+
+        function playerConnectedOrDisconnected(num) {
             let player = `.p${parseInt(num) + 1}`
-            document.querySelector(`${player}.connected span`).classList.toggle('green')
-            if(parseInt(num)===playerNum)document.querySelector(player).style.fontWeight = 'bold'
+            document.querySelector(`${player} .connected span`).classList.toggle('green')
+            if (parseInt(num) === playerNum) document.querySelector(player).style.fontWeight = 'bold'
         }
     }
 
@@ -118,15 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 [0, 1, 2, 3, 4],
                 [0, width, width * 2, width * 3, width * 4]
             ]
-        }
+        },
     ]
 
     //random kreslime lodicky
     function generate(ship) {
-        let randomDirecton = Math.floor(Math.random() * ship.directions.length)
-        let current = ship.directions[randomDirecton]
-        if (randomDirecton === 0) direction = 1
-        if (randomDirecton === 1) direction = 10
+        let randomDirection = Math.floor(Math.random() * ship.directions.length)
+        let current = ship.directions[randomDirection]
+        if (randomDirection === 0) direction = 1
+        if (randomDirection === 1) direction = 10
         let randomStart = Math.abs(Math.floor(Math.random() * computerSquares.length - (ship.directions[0].length * direction)))
 
         const isTaken = current.some(index => computerSquares[randomStart + index].classList.contains('taken'))
@@ -134,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAtLeftEdge = current.some(index => (randomStart + index) % width === 0)
 
         if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => computerSquares[randomStart + index].classList.add('taken', ship.name))
+
         else generate(ship)
     }
 
@@ -149,11 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return
         }
         if (!isHorizontal) {
-            destroyer.classList.toggle('destroyer-container')
-            submarine.classList.toggle('submarine-container')
-            cruiser.classList.toggle('cruiser-container')
-            battleship.classList.toggle('battleship-container')
-            carrier.classList.toggle('carrier-container')
+            destroyer.classList.toggle('destroyer-container-vertical')
+            submarine.classList.toggle('submarine-container-vertical')
+            cruiser.classList.toggle('cruiser-container-vertical')
+            battleship.classList.toggle('battleship-container-vertical')
+            carrier.classList.toggle('carrier-container-vertical')
             isHorizontal = true
             return
         }
@@ -166,11 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     userSquares.forEach(square => square.addEventListener('dragenter', dragEnter))
     userSquares.forEach(square => square.addEventListener('dragleave', dragLeave))
     userSquares.forEach(square => square.addEventListener('drop', dragDrop))
-    userSquares.forEach(square => square.addEventListener('dragEnd', dragEnd))
+    userSquares.forEach(square => square.addEventListener('dragend', dragEnd))
 
-    let selectedShipNameWithIndex;
-    let draggedShip;
-    let draggedShipLength;
+    let selectedShipNameWithIndex
+    let draggedShip
+    let draggedShipLength
 
     ships.forEach(ship => ship.addEventListener('mousedown', (e) => {
         selectedShipNameWithIndex = e.target.id
@@ -191,14 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
     function dragDrop() {
-        let shipNameWithLastId = draggedShip.lastChild.id;
-        let shipClass = shipNameWithLastId.slice(0, -2);
-        console.log(shipClass)
-        let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
-        let shipLastId = lastShipIndex + parseInt(this.dataset.id);
-        console.log(shipLastId)
+        let shipNameWithLastId = draggedShip.lastChild.id
+        let shipClass = shipNameWithLastId.slice(0, -2)
+        let lastShipIndex = parseInt(shipNameWithLastId.substr(-1))
+        let shipLastId = lastShipIndex + parseInt(this.dataset.id)
+
         const notAllowedHorizontal = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 2, 22, 32, 42, 52, 62, 72, 82, 92, 3, 13, 23, 33, 43, 53, 63, 73, 83, 93]
         const notAllowedVertical = [99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60]
+
         let newNotAllowedHorizontal = notAllowedHorizontal.splice(0, 10 * lastShipIndex)
         let newNotAllowedVertical = notAllowedVertical.splice(0, 10 * lastShipIndex)
 
@@ -217,10 +246,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else return
 
+
         displayGrid.removeChild(draggedShip)
+        if (!displayGrid.querySelector('.ship')) allShipsPlaced = true
     }
     function dragEnd() {
     }
+
+    //multi logic
+    function playGameMulti(socket) {
+        if (isGameOver) return
+        if (!ready) {
+            socket.emit('player-ready')
+            ready = true
+            playerReady(playerNum)
+        }
+
+        if (enemyReady) {
+            if (currentPlayer === 'user') {
+                turnDisplay.innerHTML = 'Your Go'
+            }
+            if (currentPlayer === 'enemy') {
+                turnDisplay.innerHTML = "Enemy's Go"
+            }
+        }
+    }
+
+    function playerReady(num) {
+        let player = `.p${parseInt(num) + 1}`
+        document.querySelector(`${player} .ready span`).classList.toggle('green')
+    }
+    //single logic
     function playGameSingle() {
         if (isGameOver) return
         if (currentPlayer === 'user') {
