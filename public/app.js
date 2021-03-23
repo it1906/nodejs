@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const rotateButton = document.querySelector('#rotate');
     const turnDisplay = document.querySelector('#whose-go');
     const infoDisplay = document.querySelector('#info');
+    const singlePlayerButton = document.querySelector('#singlePlayerButton')
+    const multiPlayerButton = document.querySelector('#multiPlayerButton')
     const userSquares = [];
     const computerSquares = [];
     let isHorizontal = true;
@@ -25,18 +27,39 @@ document.addEventListener('DOMContentLoaded', () => {
     let allShipsPlaced = "false";
     let shitFired = -1;
 
-    const socket = io();
+    //vyber modu
+    singlePlayerButton.addEventListener('click', startSinglePlayer)
+    multiPlayerButton.addEventListener('click', startMultiPlayer)
 
-    //cislo hrace
-    socket.on('player-number', num => {
-        if(num ===-1){
-            infoDisplay.innerHTML = "sorry, the server is full"
-        } else{
-            playerNum = parseInt(num)
-            if (playerNum === 1) currentPlayer = "enemy"
-            console.log(playerNum)
-        }
-    })
+    //multiplayer
+    function startMultiPlayer() {
+        gameMode = "multiPlayer"
+        
+        const socket = io();
+
+        //cislo hrace
+        socket.on('player-number', num => {
+            if (num === -1) {
+                infoDisplay.innerHTML = "sorry, the server is full"
+            } else {
+                playerNum = parseInt(num)
+                if (playerNum === 1) currentPlayer = "enemy"
+                console.log(playerNum)
+            }
+        })
+    }
+
+    //singleplayer
+    function startSinglePlayer() {
+        gameMode = "singlePlayer"
+        generate(shipArray[0])
+        generate(shipArray[1])
+        generate(shipArray[2])
+        generate(shipArray[3])
+        generate(shipArray[4])
+
+        startButton.addEventListener('click', playGameSingle)
+    }
 
     //Tvorba desky
     function createBoard(grid, squares, width = 10) {
@@ -104,12 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => computerSquares[randomStart + index].classList.add('taken', ship.name))
         else generate(ship)
     }
-
-    generate(shipArray[0])
-    generate(shipArray[1])
-    generate(shipArray[2])
-    generate(shipArray[3])
-    generate(shipArray[4])
 
     //rotace lodicek
     function rotate() {
@@ -195,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function dragEnd() {
     }
-    function playGame() {
+    function playGameSingle() {
         if (isGameOver) return
         if (currentPlayer === 'user') {
             turnDisplay.innerHTML = 'Your Go'
@@ -208,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(computerGo, 1000)
         }
     }
-    startButton.addEventListener('click', playGame)
 
     let destroyerCount = 0;
     let submarineCount = 0;
@@ -231,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         checkForWins()
         currentPlayer = 'computer'
-        playGame()
+        playGameSingle()
     }
     let cpuDestroyerCount = 0;
     let cpuSubmarineCount = 0;
@@ -295,19 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
             infoDisplay.innerHTML = 'Carrier lost'
             cpuCarrierCount = 10
         }
-        if((destroyerCount+submarineCount+cruiserCount+battleshipCount+carrierCount) ===  50){
+        if ((destroyerCount + submarineCount + cruiserCount + battleshipCount + carrierCount) === 50) {
             infoDisplay.innerHTML = "YOU WON"
             gameOver()
         }
-        if((cpuDestroyerCount+cpuSubmarineCount+cpuCruiserCount+cpuBattleshipCount+cpuCarrierCount) ===  50){
+        if ((cpuDestroyerCount + cpuSubmarineCount + cpuCruiserCount + cpuBattleshipCount + cpuCarrierCount) === 50) {
             infoDisplay.innerHTML = "YOU LOST"
             gameOver()
         }
     }
 
-    function gameOver(){
+    function gameOver() {
         isGameOver = true
-        startButton.removeEventListener('click', playGame)
+        startButton.removeEventListener('click', playGameSingle)
     }
 
 })
