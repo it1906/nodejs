@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //multiplayer
     function startMultiPlayer() {
         gameMode = "multiPlayer"
-        
+
         const socket = io();
 
         //cislo hrace
@@ -47,6 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(playerNum)
             }
         })
+        socket.on('player-connection', num =>{
+            console.log(`player number ${num} has connected/disconnected`)
+            playerConnectedOrDisconnected(num)
+        })
+        function playerConnectedOrDisconnected(num){
+            let player = `.p${parseInt(num) + 1}`
+            document.querySelector(`${player}.connected span`).classList.toggle('green')
+            if(parseInt(num)===playerNum)document.querySelector(player).style.fontWeight = 'bold'
+        }
     }
 
     //singleplayer

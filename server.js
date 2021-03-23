@@ -34,4 +34,9 @@ io.on('connection', socket =>{
 
           // ignorovat hrace 3+
           if(playerIndex === -1)return
+
+    connections[playerIndex] = false
+
+    //jaky hrac se pripojil
+    socket.broadcast.emit('player-connection', playerIndex)
 });
