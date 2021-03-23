@@ -12,3 +12,26 @@ app.use(express.static(path.join(__dirname, "public")))
 
 //spusteni serveru
 server.listen(PORT,()=>console.log(`Server running on ${PORT}`));
+
+//socket pripojeni
+
+const connections = [null, null]
+io.on('connection', socket =>{
+    console.log('New WS Connection')
+    
+    //hledame dostupna cislo pro hrace
+    let playerIndex = -1;
+    for(const i in connections){
+        if( connections[i] ===null){
+            playerIndex = i
+            break
+        }
+    }
+
+     //jaky hrac je pripojeny uzivatel
+     socket.emit('player-number', playerIndex)
+     console.log(`Player${playerIndex} has connected`)
+
+          // ignorovat hrace 3+
+          if(playerIndex === -1)return
+});
