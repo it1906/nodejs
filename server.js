@@ -60,4 +60,26 @@ io.on('connection', socket => {
     socket.emit('check-players', players)
   })
 
+  //dopad strelby
+  socket.on('fire', id => {
+    console.log(`shot fired from ${playerIndex}`, id)
+
+    //emitovani druhemu hraci
+    socket.broadcast.emit('fire', id)
+  })
+
+  //odpoved na strelbu
+  socket.on('fire-reply', square => {
+    console.log(square)
+
+    //poslani druhemu hraci
+    socket.broadcast.emit('fire-reply', square)
+  })
+
+  //casovy limit 
+  setTimeout(() => {
+    connections[playerIndex] = null
+    socket.emit('timeout')
+    socket.disconnect()
+  }, 600000)
 });
