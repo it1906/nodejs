@@ -353,14 +353,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function enemyGo(square) {
         if (gameMode === 'singlePlayer') square = Math.floor(Math.random() * userSquares.length)
         if (!userSquares[square].classList.contains('boom')) {
-            userSquares[square].classList.add('boom')
+            const hit = userSquares[square].classList.contains('taken')
+            userSquares[square].classList.add(hit ? 'boom' : 'miss')
             if (userSquares[square].classList.contains('destroyer')) cpuDestroyerCount++
             if (userSquares[square].classList.contains('submarine')) cpuSubmarineCount++
             if (userSquares[square].classList.contains('cruiser')) cpuCruiserCount++
             if (userSquares[square].classList.contains('battleship')) cpuBattleshipCount++
             if (userSquares[square].classList.contains('carrier')) cpuCarrierCount++
             checkForWins()
-        } else if (gamemode === 'singlePlayer') enemyGo()
+        }
+        else if (gamemode === 'singlePlayer') enemyGo()
         currentPlayer = 'user'
         turnDisplay.innerHTML = 'Your Go'
     }
